@@ -39,10 +39,10 @@ static QemuOptsList qemu_fsdev_opts = {
             .name = "sock_fd",
             .type = QEMU_OPT_NUMBER,
         }, {
-            .name = "fmask",
+            .name = "fmode",
             .type = QEMU_OPT_NUMBER,
         }, {
-            .name = "dmask",
+            .name = "dmode",
             .type = QEMU_OPT_NUMBER,
         },
 
@@ -82,10 +82,10 @@ static QemuOptsList qemu_virtfs_opts = {
             .name = "sock_fd",
             .type = QEMU_OPT_NUMBER,
         }, {
-            .name = "fmask",
+            .name = "fmode",
             .type = QEMU_OPT_NUMBER,
         }, {
-            .name = "dmask",
+            .name = "dmode",
             .type = QEMU_OPT_NUMBER,
         },
 
