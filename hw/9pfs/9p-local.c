@@ -1440,11 +1440,6 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
         return -1;
     }
 
-    if (!path) {
-        error_report("fsdev: No path specified");
-        return -1;
-    }
-
     if (!strcmp(sec_model, "passthrough")) {
         fse->export_flags |= V9FS_SM_PASSTHROUGH;
     } else if (!strcmp(sec_model, "mapped") ||
@@ -1458,6 +1453,11 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
         error_report("Invalid security model %s specified", sec_model);
         error_printf("valid options are:"
                      "\t[passthrough|mapped-xattr|mapped-file|none]\n");
+        return -1;
+    }
+
+    if (!path) {
+        error_report("fsdev: No path specified");
         return -1;
     }
 
