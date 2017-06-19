@@ -40,10 +40,10 @@ static QemuOptsList qemu_fsdev_opts = {
             .type = QEMU_OPT_NUMBER,
         }, {
             .name = "fmask",
-            .type = QEMU_OPT_STRING,
+            .type = QEMU_OPT_NUMBER,
         }, {
             .name = "dmask",
-            .type = QEMU_OPT_STRING,
+            .type = QEMU_OPT_NUMBER,
         },
 
         THROTTLE_OPTS,
@@ -83,10 +83,10 @@ static QemuOptsList qemu_virtfs_opts = {
             .type = QEMU_OPT_NUMBER,
         }, {
             .name = "fmask",
-            .type = QEMU_OPT_STRING,
+            .type = QEMU_OPT_NUMBER,
         }, {
             .name = "dmask",
-            .type = QEMU_OPT_STRING,
+            .type = QEMU_OPT_NUMBER,
         },
 
         { /*End of list */ }

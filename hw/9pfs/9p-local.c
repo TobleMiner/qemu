@@ -1431,9 +1431,8 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
 {
     const char *sec_model = qemu_opt_get(opts, "security_model");
     const char *path = qemu_opt_get(opts, "path");
-    const char *fmask = qemu_opt_get(opts, "fmask");
-    const char *dmask = qemu_opt_get(opts, "dmask");
-    unsigned long mask;
+    uint64_t fmask = qemu_opt_get_number(opts, "fmask", SM_LOCAL_MODE_BITS);
+    uint64_t dmask = qemu_opt_get_number(opts, "dmask", SM_LOCAL_DIR_MODE_BITS);
     Error *err = NULL;
 
     if (!sec_model) {
@@ -1459,36 +1458,32 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
         return -1;
     }
 
-    if (!path) {
-        error_report("fsdev: No path specified");
-        return -1;
-    }
-
     fsdev_throttle_parse_opts(opts, &fse->fst, &err);
     if (err) {
         error_reportf_err(err, "Throttle configuration is not valid: ");
         return -1;
     }
 
+    if (!(fse->export_flags & (V9FS_SM_MAPPED | V9FS_SM_MAPPED_FILE))) {
+        if (qemu_opt_find(opts, "fmask")) {
+            error_report("fmask is only valid for mapped 9p modes");
+            return -1;
+        }
+        if (qemu_opt_find(opts, "dmask")) {
+            error_report("dmask is only valid for mapped 9p modes");
+            return -1;
+        }
+    }
+
+    fse->fmask = ((mode_t)fmask) & 0777;
+    fse->dmask = ((mode_t)dmask) & 0777;
+
+    if (!path) {
+        error_report("fsdev: No path specified");
+        return -1;
+    }
+
     fse->path = g_strdup(path);
-
-    fse->fmask = SM_LOCAL_MODE_BITS;
-    if (fmask) {
-        if (qemu_strtoul(fmask, NULL, 0, &mask)) {
-            error_report("Invalid fmask %s specified", fmask);
-            return -1;
-        }
-        fse->fmask = ((mode_t)mask) & 0777;
-    }
-
-    fse->dmask = SM_LOCAL_DIR_MODE_BITS;
-    if (dmask) {
-        if (qemu_strtoul(dmask, NULL, 0, &mask)) {
-            error_report("Invalid dmask %s specified", dmask);
-            return -1;
-        }
-        fse->dmask = ((mode_t)mask) & 0777;
-    }
 
     return 0;
 }
