@@ -1431,14 +1431,17 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
 {
     const char *sec_model = qemu_opt_get(opts, "security_model");
     const char *path = qemu_opt_get(opts, "path");
-    uint64_t fmode = qemu_opt_get_number(opts, "fmode", SM_LOCAL_MODE_BITS);
-    uint64_t dmode = qemu_opt_get_number(opts, "dmode", SM_LOCAL_DIR_MODE_BITS);
     Error *err = NULL;
 
     if (!sec_model) {
         error_report("Security model not specified, local fs needs security model");
         error_printf("valid options are:"
                      "\tsecurity_model=[passthrough|mapped-xattr|mapped-file|none]\n");
+        return -1;
+    }
+
+    if (!path) {
+        error_report("fsdev: No path specified");
         return -1;
     }
 
@@ -1464,7 +1467,13 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
         return -1;
     }
 
-    if (!(fse->export_flags & (V9FS_SM_MAPPED | V9FS_SM_MAPPED_FILE))) {
+    if (fse->export_flags & V9FS_SM_MAPPED ||
+        fse->export_flags & V9FS_SM_MAPPED_FILE) {
+        fse->fmode =
+            qemu_opt_get_number(opts, "fmode", SM_LOCAL_MODE_BITS) & 0777;
+        fse->dmode =
+            qemu_opt_get_number(opts, "dmode", SM_LOCAL_DIR_MODE_BITS) & 0777;
+    } else {
         if (qemu_opt_find(opts, "fmode")) {
             error_report("fmode is only valid for mapped 9p modes");
             return -1;
@@ -1473,14 +1482,6 @@ static int local_parse_opts(QemuOpts *opts, struct FsDriverEntry *fse)
             error_report("dmode is only valid for mapped 9p modes");
             return -1;
         }
-    }
-
-    fse->fmode = ((mode_t)fmode) & 0777;
-    fse->dmode = ((mode_t)dmode) & 0777;
-
-    if (!path) {
-        error_report("fsdev: No path specified");
-        return -1;
     }
 
     fse->path = g_strdup(path);
